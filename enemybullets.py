@@ -3,7 +3,7 @@ import os
 
 class EnemyBullets(pygame.sprite.Sprite):
     DAMAGE = 5
-    base_speed = 16  
+    base_speed = 12  
 
     def __init__(self, x, y, phase=None):
         pygame.sprite.Sprite.__init__(self)

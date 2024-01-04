@@ -70,7 +70,7 @@ def main():
     phase_timer = 20
     enemy_spawn_timer = 0
     enemy_spawn_interval = 50
-    enemies_per_phase = 3  
+    enemies_per_phase = 15  
     enemies_spawned = 0
 
     score = 0
@@ -123,6 +123,11 @@ def main():
             enemy.handle_player_bullets(bullets)
             enemy.update(enemies)
             enemy.rect.x -= VEL * 2
+
+            if enemy.rect.right < 0:
+                spaceship.take_damage(enemy.DAMAGE)
+                enemies.remove(enemy)
+
 
             if enemy.is_destroyed:
                 current_time = pygame.time.get_ticks()
