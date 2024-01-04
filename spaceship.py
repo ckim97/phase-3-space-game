@@ -31,6 +31,10 @@ class Spaceship(pygame.sprite.Sprite):
         pygame.draw.rect(window, (0, 255, 0), green_health_rect)
         pygame.draw.rect(window, (255, 0, 0), red_health_rect)
 
+    def heal(self, healing_amount):
+        self.remaining_health = min(self.remaining_health + healing_amount, 100)
+
+
     def take_damage(self, damage):
         self.remaining_health -= damage
         if self.remaining_health < 0:
@@ -69,6 +73,16 @@ class Spaceship(pygame.sprite.Sprite):
             self.vel_x = -Spaceship.VEL
         if keys_pressed[pygame.K_d]:
             self.vel_x = Spaceship.VEL
+
+        
+        if keys_pressed[pygame.K_9]:
+            self.remaining_health = self.starting_health
+        
+        if keys_pressed[pygame.K_LSHIFT]:
+            Spaceship.VEL = 15
+        else:
+            Spaceship.VEL = 10
+            
 
         self.rect.x += self.vel_x
         self.rect.y += self.vel_y

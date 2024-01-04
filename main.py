@@ -1,11 +1,11 @@
 import pygame
 import os
 import math
-import random
 from enemy import Enemy
 from spaceship import Spaceship
 from bullets import Bullets
 from enemybullets import EnemyBullets
+from health import Health
 
 WIDTH, HEIGHT = 1400, 700
 WIN = pygame.display.set_mode((WIDTH, HEIGHT))
@@ -23,7 +23,7 @@ pygame.font.init()
 font = pygame.font.Font(None, 36)
 
 
-def draw_window(spaceship, enemies, bullets, enemy_bullets, scroll, phase, phase_timer, score):
+def draw_window(spaceship, enemies, bullets, enemy_bullets, scroll, phase, phase_timer, score, health_items):
     for i in range(0, math.ceil(WIDTH / BACKGROUND_IMAGE_WIDTH) + 1):
         WIN.blit(BACKGROUND_IMAGE, (i * BACKGROUND_IMAGE_WIDTH + scroll, 0))
 
@@ -39,6 +39,9 @@ def draw_window(spaceship, enemies, bullets, enemy_bullets, scroll, phase, phase
 
     for enemy_bullet in enemy_bullets:
         WIN.blit(enemy_bullet.image, enemy_bullet.rect)
+
+    for health_item in health_items:
+        WIN.blit(health_item.image, health_item.rect)
 
     phase_text = font.render(f"Phase {phase}", True, (255, 255, 255))
     WIN.blit(phase_text, (700, 10))
@@ -64,6 +67,9 @@ def main():
     enemies = []
     bullets = []
     enemy_bullets = []
+    health_items = []
+
+    health_item_created = False
     
 
     phase = 1
@@ -87,32 +93,61 @@ def main():
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 run = False
+            if event.type == pygame.QUIT:
+                pygame.quit()
+        
+
 
 
         phase_timer -= 1 / FPS  
+
+        if not health_item_created and 9 <= phase_timer <= 10:
+            health_items.append(Health.create_random_health())
+            health_item_created = True  # Set the flag to True to indicate that a health item has been created
+
+
         if phase_timer <= 0:
             phase += 1
             phase_timer = 20  
             enemies_per_phase += 3  
             enemies_spawned = 0  
+            health_item_created = False
 
             
             if phase % 3 == 0:
                 EnemyBullets.base_speed += 2  
 
+        enemy_spawn_timer += 1
+        if enemy_spawn_timer >= enemy_spawn_interval and enemies_spawned < enemies_per_phase:
+            enemies.append(Enemy.create_random_enemy())
+            enemy_spawn_timer = 0
+            enemies_spawned += 1
+
         keys_pressed = pygame.key.get_pressed()
         bullet = spaceship.handle_movement(keys_pressed)
+
+
 
         scroll -= 5
         if abs(scroll) > BACKGROUND_IMAGE_WIDTH:
             scroll = 0
 
+
         if bullet:
             bullets.append(bullet)
-
+     
         
-        for bullet in bullets:
+        for bullet in bullets:  
+            for health_item in health_items:
+                if bullet.rect.colliderect(health_item.rect):
+                    spaceship.heal(health_item.healing)
+                    health_items.remove(health_item)
+                    bullets.remove(bullet)
+                    break  
             bullet.update()
+
+        for health_item in health_items:
+                health_item.update()
 
         for enemy_bullet in enemy_bullets:
             enemy_bullet.update()
@@ -140,14 +175,7 @@ def main():
         spaceship.handle_enemy_bullets(enemy_bullets)
 
         
-        enemy_spawn_timer += 1
-        if enemy_spawn_timer >= enemy_spawn_interval and enemies_spawned < enemies_per_phase:
-            enemies.append(Enemy.create_random_enemy())
-            enemy_spawn_timer = 0
-            enemies_spawned += 1
-
-        
-        draw_window(spaceship, enemies, bullets, enemy_bullets, scroll, phase, phase_timer, score)
+        draw_window(spaceship, enemies, bullets, enemy_bullets, scroll, phase, phase_timer, score, health_items)
 
         if spaceship.remaining_health <= 0:
             draw_game_over()
@@ -158,6 +186,7 @@ def main():
                     if event.type == pygame.QUIT:
                         run = False
                         game_over = True
+                        pygame.quit()
                     if event.type == pygame.KEYDOWN:
                         if event.key == pygame.K_p:
                             main()  
