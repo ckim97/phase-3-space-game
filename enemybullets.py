@@ -13,7 +13,7 @@ class EnemyBullets(pygame.sprite.Sprite):
         self.speed = self.calculate_speed(phase)
 
     def calculate_speed(self, phase):
-        if phase is not None and phase % 10 == 0:
+        if phase is not None and phase % 3 == 0:
             return self.base_speed + 2  
         else:
             return self.base_speed

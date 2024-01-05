@@ -2,11 +2,12 @@ import pygame
 import os
 import math
 from enemy import Enemy
+from secondenemy import SecondEnemy
 from spaceship import Spaceship
 from bullets import Bullets
 from enemybullets import EnemyBullets
 from health import Health
-from shooting import Shooting 
+from shooting import Shooting
 
 WIDTH, HEIGHT = 1400, 700
 WIN = pygame.display.set_mode((WIDTH, HEIGHT))
@@ -17,8 +18,6 @@ VEL = 5
 
 BACKGROUND_IMAGE = pygame.image.load(os.path.join("Assets", "stars.png")).convert()
 BACKGROUND_IMAGE_WIDTH = BACKGROUND_IMAGE.get_width()
-
-
 
 pygame.font.init()
 font = pygame.font.Font(None, 36)
@@ -58,6 +57,7 @@ def draw_window(spaceship, enemies, bullets, enemy_bullets, scroll, phase, phase
 
     pygame.display.update()
 
+
 def draw_game_over():
     game_over = font.render("Game Over", True, (255, 255, 255))
     WIN.blit(game_over, (WIDTH // 2 - 100, HEIGHT // 2 - 50))
@@ -65,6 +65,7 @@ def draw_game_over():
     WIN.blit(play_again, (WIDTH // 2 - 140, HEIGHT // 2 + 20))
     exit_text = font.render("Press 'Q' to exit", True, (255, 255, 255))
     WIN.blit(exit_text, (WIDTH // 2 - 100, HEIGHT // 2 + 60))
+
 
 def main():
     spaceship = Spaceship(100, 300)
@@ -76,14 +77,18 @@ def main():
 
     health_item_created = False
     shooting_item_created = False
-    
 
     phase = 1
     phase_timer = 20
-    enemy_spawn_timer = 0
-    enemy_spawn_interval = 50
-    enemies_per_phase = 15  
+    enemy_spawn_timer1 = 0
+    enemy_spawn_timer2 = 0
+    enemy_spawn_interval1 = 50
+    enemy_spawn_interval2 = 60
+    enemies_per_phase = 20
     enemies_spawned = 0
+
+    second_enemies_spawned = 0
+    second_enemies_to_be_spawned = 0
 
     score = 0
 
@@ -99,52 +104,65 @@ def main():
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 run = False
-            if event.type == pygame.QUIT:
+                game_over = True
                 pygame.quit()
-        
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_p:
+                    main()
+                elif event.key == pygame.K_q:
+                    pygame.quit()
 
-
-
-        phase_timer -= 1 / FPS  
+        phase_timer -= 1 / FPS
 
         if not health_item_created and 9 <= phase_timer <= 10:
             health_items.append(Health.create_random_health())
-            health_item_created = True 
-        
-        
-
+            health_item_created = True
 
         if phase_timer <= 0:
             phase += 1
-            phase_timer = 20  
-            enemies_per_phase += 3  
-            enemies_spawned = 0  
+            phase_timer = 20
+            enemies_per_phase += 3
+            enemies_spawned = 0
             health_item_created = False
             shooting_item_created = False
+            second_enemies_spawned = 0
 
             if not shooting_item_created and phase % 2 == 0:
                 speed_items.append(Shooting.create_random_speed())
                 shooting_item_created = True
 
-            
-            if phase % 3 == 0:
-                EnemyBullets.base_speed += 2  
+            if phase % 2 == 0:
+                second_enemies_to_be_spawned += 1
 
-        enemy_spawn_timer += 1
-        if enemy_spawn_timer >= enemy_spawn_interval and enemies_spawned < enemies_per_phase:
-            enemies.append(Enemy.create_random_enemy())
-            enemy_spawn_timer = 0
+            if phase % 3 == 0:
+                EnemyBullets.base_speed += 2
+
+        enemy_spawn_timer1 += 1
+        enemy_spawn_timer2 += 1
+
+        if enemy_spawn_timer1 >= enemy_spawn_interval1 and enemies_spawned < enemies_per_phase:
+            enemy1 = Enemy.create_random_enemy()
+            if enemy1:
+                enemies.append(enemy1)
+            enemy_spawn_timer1 = 0
             enemies_spawned += 1
+
+        if enemy_spawn_timer2 >= enemy_spawn_interval2 and enemies_spawned < enemies_per_phase and phase % 2 == 0:
+            while second_enemies_spawned < second_enemies_to_be_spawned:
+                # Generate a random position for the second enemy
+                enemy2 = SecondEnemy.create_random_enemy()
+                if enemy2:
+                    enemies.append(enemy2)
+                    enemies_spawned += 1
+                    second_enemies_spawned += 1
+                    pygame.time.wait(1000)
 
         keys_pressed = pygame.key.get_pressed()
         bullet = spaceship.handle_movement(keys_pressed)
 
-
-
         scroll -= 5
         if abs(scroll) > BACKGROUND_IMAGE_WIDTH:
             scroll = 0
-
 
         if bullet:
             bullets.append(bullet)
@@ -156,27 +174,25 @@ def main():
                     speed_items.remove(speed_item)
                     bullets.remove(bullet)
                     break
-        
+
         for speed_item in speed_items:
             speed_item.update()
-     
-        
-        for bullet in bullets:  
+
+        for bullet in bullets:
             for health_item in health_items:
                 if bullet.rect.colliderect(health_item.rect):
                     spaceship.heal(health_item.healing)
                     health_items.remove(health_item)
                     bullets.remove(bullet)
-                    break  
+                    break
             bullet.update()
 
         for health_item in health_items:
-                health_item.update()
+            health_item.update()
 
         for enemy_bullet in enemy_bullets:
             enemy_bullet.update()
 
-        
         for enemy in enemies:
             enemy.handle_shooting(enemy_bullets)
             enemy.handle_player_bullets(bullets)
@@ -187,19 +203,17 @@ def main():
                 spaceship.take_damage(enemy.DAMAGE)
                 enemies.remove(enemy)
 
-
             if enemy.is_destroyed:
                 current_time = pygame.time.get_ticks()
                 elapsed_time = current_time - enemy.destroyed_time
 
                 if elapsed_time > 200:
                     score += 1
-                
- 
+
         spaceship.handle_enemy_bullets(enemy_bullets)
 
-        
-        draw_window(spaceship, enemies, bullets, enemy_bullets, scroll, phase, phase_timer, score, health_items, speed_items)
+        draw_window(spaceship, enemies, bullets, enemy_bullets, scroll, phase, phase_timer, score, health_items,
+                    speed_items)
 
         if spaceship.remaining_health <= 0:
             draw_game_over()
@@ -213,7 +227,7 @@ def main():
                         pygame.quit()
                     if event.type == pygame.KEYDOWN:
                         if event.key == pygame.K_p:
-                            main()  
+                            main()
                         elif event.key == pygame.K_q:
                             pygame.quit()
 

@@ -4,16 +4,17 @@ import random
 from bullets import Bullets
 from enemybullets import EnemyBullets
 
-class Enemy(pygame.sprite.Sprite):
+class SecondEnemy(pygame.sprite.Sprite):
     WIDTH, HEIGHT = 1400, 700
-    DAMAGE = 10
-    def __init__(self, x, y, health=5):
+    DAMAGE = 20
+    
+    def __init__(self, x, y, health=10):
         pygame.sprite.Sprite.__init__(self)
         self.x = x
         self.y = y
         self.width = 85
         self.height = 70
-        self.original_image = pygame.transform.rotate(pygame.transform.scale(pygame.image.load(os.path.join("Assets", "enemy.png")).convert_alpha(), (self.width, self.height)), 180)
+        self.original_image = pygame.transform.rotate(pygame.transform.scale(pygame.image.load(os.path.join("Assets", "secondenemy.png")).convert_alpha(), (self.width, self.height)), 180)
         self.image = self.original_image
         self.rect = self.image.get_rect(topleft=(x, y))
         self.last_shot = pygame.time.get_ticks()
@@ -31,7 +32,8 @@ class Enemy(pygame.sprite.Sprite):
         instance = cls(0, 0)
         x = cls.WIDTH
         y = random.randint(0, cls.HEIGHT - instance.height)
-        return cls(x, y)
+        return cls(x, y)  
+        
     
     def handle_shooting(self, enemy_bullets):
         current_time = pygame.time.get_ticks()
@@ -58,7 +60,7 @@ class Enemy(pygame.sprite.Sprite):
 
             destroyed_image = pygame.transform.scale(
                 pygame.transform.rotate(
-                    pygame.image.load(os.path.join("Assets", "destroyed.png")).convert_alpha(),180), (self.width, self.height))
+                    pygame.image.load(os.path.join("Assets", "destroyed_second_enemy.png")).convert_alpha(),180), (self.width, self.height))
             self.image = destroyed_image
             self.rect = destroyed_image.get_rect(topleft=(self.rect.x, self.rect.y))
 
