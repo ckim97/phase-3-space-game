@@ -21,8 +21,12 @@ class Spaceship(pygame.sprite.Sprite):
         self.remaining_health = health
         self.health_bar_width = 10
         self.health_bar_height = 50
-        self.bullet_cooldown = 500  
+        self.bullet_cooldown = 600  
         self.last_shot = pygame.time.get_ticks() 
+        self.boost_duration = 20  
+        self.boost_active = False
+        self.boost_start_time = 0
+        self.boost_value = 0
 
     def draw_health_bar(self, window):
         health_height = int((self.remaining_health / self.starting_health) * self.health_bar_height)
@@ -34,6 +38,11 @@ class Spaceship(pygame.sprite.Sprite):
     def heal(self, healing_amount):
         self.remaining_health = min(self.remaining_health + healing_amount, 100)
 
+    def shooting_boost(self, speed_item):
+        if not self.boost_active:
+            self.boost_active = True
+            self.boost_start_time = pygame.time.get_ticks()
+            self.boost_value = speed_item
 
     def take_damage(self, damage):
         self.remaining_health -= damage
@@ -50,6 +59,19 @@ class Spaceship(pygame.sprite.Sprite):
     def handle_movement(self, keys_pressed):
         bullet = None
 
+        if self.boost_active:
+            current_time = pygame.time.get_ticks()
+            elapsed_time = (current_time - self.boost_start_time) / 1000  # Convert milliseconds to seconds
+            if elapsed_time >= self.boost_duration:
+                self.boost_active = False
+                self.boost_start_time = 0
+            else:
+                self.bullet_cooldown = 500 - self.boost_value
+
+        else:
+            self.bullet_cooldown = 500  # Reset to the original value when boost is not active
+
+
         if keys_pressed[pygame.K_a] and self.rect.x - Spaceship.VEL > 0:
             self.vel_x = -Spaceship.VEL
         elif keys_pressed[pygame.K_d] and self.rect.x + Spaceship.VEL < Spaceship.WIDTH - self.width:
@@ -64,7 +86,6 @@ class Spaceship(pygame.sprite.Sprite):
         else:
             self.vel_y = 0
         
-       
         if keys_pressed[pygame.K_w]:
             self.vel_y = -Spaceship.VEL
         if keys_pressed[pygame.K_s]:
@@ -74,24 +95,20 @@ class Spaceship(pygame.sprite.Sprite):
         if keys_pressed[pygame.K_d]:
             self.vel_x = Spaceship.VEL
 
-        
         if keys_pressed[pygame.K_9]:
             self.remaining_health = self.starting_health
-        
+
         if keys_pressed[pygame.K_LSHIFT]:
             Spaceship.VEL = 15
         else:
             Spaceship.VEL = 10
-            
 
         self.rect.x += self.vel_x
         self.rect.y += self.vel_y
 
-       
         self.rect.x = max(0, min(Spaceship.WIDTH - self.width, self.rect.x))
         self.rect.y = max(0, min(Spaceship.HEIGHT - self.height, self.rect.y))
 
- 
         time_now = pygame.time.get_ticks()
         if keys_pressed[pygame.K_SPACE] and time_now - self.last_shot > self.bullet_cooldown:
             bullet = Bullets(self.rect.x + self.width, self.rect.y + self.height // 2)

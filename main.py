@@ -6,6 +6,7 @@ from spaceship import Spaceship
 from bullets import Bullets
 from enemybullets import EnemyBullets
 from health import Health
+from shooting import Shooting 
 
 WIDTH, HEIGHT = 1400, 700
 WIN = pygame.display.set_mode((WIDTH, HEIGHT))
@@ -23,7 +24,7 @@ pygame.font.init()
 font = pygame.font.Font(None, 36)
 
 
-def draw_window(spaceship, enemies, bullets, enemy_bullets, scroll, phase, phase_timer, score, health_items):
+def draw_window(spaceship, enemies, bullets, enemy_bullets, scroll, phase, phase_timer, score, health_items, speed_items):
     for i in range(0, math.ceil(WIDTH / BACKGROUND_IMAGE_WIDTH) + 1):
         WIN.blit(BACKGROUND_IMAGE, (i * BACKGROUND_IMAGE_WIDTH + scroll, 0))
 
@@ -42,6 +43,9 @@ def draw_window(spaceship, enemies, bullets, enemy_bullets, scroll, phase, phase
 
     for health_item in health_items:
         WIN.blit(health_item.image, health_item.rect)
+
+    for speed_item in speed_items:
+        WIN.blit(speed_item.image, speed_item.rect)
 
     phase_text = font.render(f"Phase {phase}", True, (255, 255, 255))
     WIN.blit(phase_text, (700, 10))
@@ -68,8 +72,10 @@ def main():
     bullets = []
     enemy_bullets = []
     health_items = []
+    speed_items = []
 
     health_item_created = False
+    shooting_item_created = False
     
 
     phase = 1
@@ -104,6 +110,8 @@ def main():
         if not health_item_created and 9 <= phase_timer <= 10:
             health_items.append(Health.create_random_health())
             health_item_created = True 
+        
+        
 
 
         if phase_timer <= 0:
@@ -112,6 +120,11 @@ def main():
             enemies_per_phase += 3  
             enemies_spawned = 0  
             health_item_created = False
+            shooting_item_created = False
+
+            if not shooting_item_created and phase % 2 == 0:
+                speed_items.append(Shooting.create_random_speed())
+                shooting_item_created = True
 
             
             if phase % 3 == 0:
@@ -135,6 +148,17 @@ def main():
 
         if bullet:
             bullets.append(bullet)
+
+        for bullet in bullets:
+            for speed_item in speed_items:
+                if bullet.rect.colliderect(speed_item.rect):
+                    spaceship.shooting_boost(speed_item.speed_boost)
+                    speed_items.remove(speed_item)
+                    bullets.remove(bullet)
+                    break
+        
+        for speed_item in speed_items:
+            speed_item.update()
      
         
         for bullet in bullets:  
@@ -175,7 +199,7 @@ def main():
         spaceship.handle_enemy_bullets(enemy_bullets)
 
         
-        draw_window(spaceship, enemies, bullets, enemy_bullets, scroll, phase, phase_timer, score, health_items)
+        draw_window(spaceship, enemies, bullets, enemy_bullets, scroll, phase, phase_timer, score, health_items, speed_items)
 
         if spaceship.remaining_health <= 0:
             draw_game_over()
