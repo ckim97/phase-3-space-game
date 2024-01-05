@@ -82,7 +82,7 @@ def main():
     phase_timer = 20
     enemy_spawn_timer = 0
     enemy_spawn_interval = 50
-    enemies_per_phase = 15  
+    enemies_per_phase = 20  
     enemies_spawned = 0
 
     score = 0
@@ -116,7 +116,7 @@ def main():
 
         if phase_timer <= 0:
             phase += 1
-            phase_timer = 20  
+            phase_timer = 20        
             enemies_per_phase += 3  
             enemies_spawned = 0  
             health_item_created = False
@@ -127,8 +127,8 @@ def main():
                 shooting_item_created = True
 
             
-            if phase % 3 == 0:
-                EnemyBullets.base_speed += 2  
+            if phase % 2 == 0:
+                EnemyBullets.base_speed += 5  
 
         enemy_spawn_timer += 1
         if enemy_spawn_timer >= enemy_spawn_interval and enemies_spawned < enemies_per_phase:
