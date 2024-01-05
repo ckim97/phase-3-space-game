@@ -122,7 +122,7 @@ def main():
             health_item_created = False
             shooting_item_created = False
 
-            if not shooting_item_created and phase % 3 == 0:
+            if not shooting_item_created and phase % 2 == 0:
                 speed_items.append(Shooting.create_random_speed())
                 shooting_item_created = True
 
