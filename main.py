@@ -103,7 +103,7 @@ def main():
 
         if not health_item_created and 9 <= phase_timer <= 10:
             health_items.append(Health.create_random_health())
-            health_item_created = True  # Set the flag to True to indicate that a health item has been created
+            health_item_created = True 
 
 
         if phase_timer <= 0:

@@ -24,7 +24,7 @@ class Enemy(pygame.sprite.Sprite):
         self.collision_timer = 200
         self.last_collision_time = 0
         self.is_destroyed = False
-        self.destroyed_time = 0  # Added attribute
+        self.destroyed_time = 0  
 
     @classmethod
     def create_random_enemy(cls):
