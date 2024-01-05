@@ -23,7 +23,7 @@ class Spaceship(pygame.sprite.Sprite):
         self.health_bar_height = 50
         self.bullet_cooldown = 600  
         self.last_shot = pygame.time.get_ticks() 
-        self.boost_duration = 20  
+        self.boost_duration = 10  
         self.boost_active = False
         self.boost_start_time = 0
         self.boost_value = 0
